@@ -3,11 +3,6 @@ st.title("DEMO CHATBOT")
 import openai
 import os
 os.environ["GOOGLE_API_KEY"]=st.secrets["GOOGLE_API_KEY"]
-
-# Set page config
-st.set_page_config(page_title="Chatbot", layout="centered")
-st.title("🤖 Simple Chatbot")
-
 # Initialize session state for messages
 if "messages" not in st.session_state:
     st.session_state.messages = []

@@ -1,6 +1,5 @@
 import streamlit as st
 st.title("DEMO CHATBOT")
-import openai
 import os
 os.environ["GOOGLE_API_KEY"]=st.secrets["GOOGLE_API_KEY"]
 # Initialize session state for messages

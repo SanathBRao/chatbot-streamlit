@@ -2,7 +2,7 @@ import streamlit as st
 st.title("DEMO CHATBOT")
 import os
 os.environ["GOOGLE_API_KEY"]=st.secrets["GOOGLE_API_KEY"]
-# Initialize session state for messages
+# Initialize session state for messages 
 if "messages" not in st.session_state:
     st.session_state.messages = []
 

@@ -1,2 +1,3 @@
 streamlit
-Add langchain_google_genai  
+langchain_google_genai  
+langchain_core

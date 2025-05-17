@@ -1,4 +1,10 @@
 import streamlit as st
+from PIL import Image
+from io import BytesIO
+import base64
+import google.generativeai as genai
+
+ 
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 import os

@@ -1,1 +1,2 @@
 streamlit
+Add langchain-google-genai

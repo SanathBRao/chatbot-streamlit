@@ -1,16 +1,24 @@
 import streamlit as st
 from PIL import Image
 from io import BytesIO
-import base64
 import google.generativeai as genai
-import numpy as np
- 
+from google.generativeai.types import Content, GenerateContentConfig
+
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
+
+# Streamlit page setup
+st.set_page_config(page_title="Gemini Chatbot + Image Generator", layout="centered")
+st.title("🤖 Gemini Chatbot + 🎨 Image Generator")
+
+# Set Gemini API Key
 import os
 os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
-st.set_page_config(page_title="Gemini Chatbot", layout="centered")
-st.title("🤖 Gemini Chatbot")
+genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
+
+# --- Chatbot Section ---
+st.subheader("💬 Chat with Gemini")
+
 # Initialize LLM
 llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash")
 
@@ -25,32 +33,35 @@ for msg in st.session_state.chat_history:
         with st.chat_message(role):
             st.markdown(msg.content)
 
-# Input from user
+# Chat input
 user_input = st.chat_input("Type your message...")
 
 if user_input:
-    # Append user message
     st.session_state.chat_history.append(HumanMessage(content=user_input))
     with st.chat_message("user"):
         st.markdown(user_input)
 
-    # Generate and display model response
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
             result = llm.invoke(st.session_state.chat_history)
             st.markdown(result.content)
+            st.session_state.chat_history.append(AIMessage(content=result.content))
 
-    # Append model response
-    st.session_state.chat_history.append(AIMessage(content=result.content))
-generation_config=GenerateContentConfig(
-        response_modalities=["TEXT", "IMAGE"]
-    )
-prompt = st.text_area("Enter a prompt for image generation")
+# --- Image Generation Section ---
+st.subheader("🖼️ Generate Image from Prompt")
+
+prompt = st.text_area("Enter a prompt for image generation", placeholder="e.g. A futuristic city at sunset")
+
+# Initialize the image generation model
+image_model = genai.GenerativeModel(
+    model_name="gemini-2.0-flash-preview-image-generation",
+    generation_config=GenerateContentConfig(response_modalities=["TEXT", "IMAGE"])
+)
 
 if st.button("Generate Image"):
     with st.spinner("Generating image and text..."):
         contents = [Content(parts=[{"text": prompt}])]
-        response = model.generate_content(contents)
+        response = image_model.generate_content(contents)
 
         for part in response.candidates[0].content.parts:
             if hasattr(part, 'text') and part.text:

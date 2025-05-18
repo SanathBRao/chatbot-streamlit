@@ -34,17 +34,14 @@ for msg in st.session_state.chat_history:
 user_input = st.chat_input("Type your message...")
 
 if user_input:
-    # Add user message
     st.session_state.chat_history.append(HumanMessage(content=user_input))
     with st.chat_message("user"):
         st.markdown(user_input)
 
-    # Generate chatbot response
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
             response = llm.invoke(st.session_state.chat_history)
             st.markdown(response.content)
-    # Save assistant response
     st.session_state.chat_history.append(AIMessage(content=response.content))
 
 st.divider()
@@ -63,19 +60,17 @@ if st.button("Generate Image"):
                 # Use Gemini preview image generation model
                 model = genai.GenerativeModel(model_name="gemini-2.0-flash-preview-image-generation")
 
-                response = model.generate_content(
-                    contents=[{"text": image_prompt}],
-                    response_modalities=["TEXT", "IMAGE"]
-                )
+                # Generate content WITHOUT response_modalities argument
+                response = model.generate_content(contents=[{"text": image_prompt}])
 
-                # Parse response parts
+                # Loop through parts: can contain text or base64 images
                 for part in response.candidates[0].content.parts:
                     if hasattr(part, "text") and part.text:
                         st.subheader("Text Response")
                         st.write(part.text)
 
                     elif hasattr(part, "inline_data") and part.inline_data:
-                        # inline_data.data is base64-encoded image string
+                        # inline_data.data is base64-encoded string
                         image_data_base64 = part.inline_data.data
                         image_bytes = base64.b64decode(image_data_base64)
                         image = Image.open(BytesIO(image_bytes))

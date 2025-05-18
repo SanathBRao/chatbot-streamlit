@@ -10,7 +10,7 @@ from PIL import Image
 image_data_base64 = part.inline_data.data
 image_data = base64.b64decode(image_data_base64)
 
-image = Image.open(BytesIO(image_data)
+image = Image.open(BytesIO(image_data))
 import os
 
 # --- Set up API key securely ---

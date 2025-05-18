@@ -45,7 +45,6 @@ if user_input:
 generation_config=GenerateContentConfig(
         response_modalities=["TEXT", "IMAGE"]
     )
-)
 prompt = st.text_area("Enter a prompt for image generation")
 
 if st.button("Generate Image"):

@@ -5,6 +5,14 @@ from PIL import Image
 from io import BytesIO
 import google.generativeai as genai
 import base64
+from io import BytesIO
+from PIL import Image
+
+# Assuming part.inline_data.data is a base64 encoded string, decode it first:
+image_data_base64 = part.inline_data.data
+image_data = base64.b64decode(image_data_base64)
+
+image = Image.open(BytesIO(image_data)
 import os
 
 # --- Set up API key securely ---

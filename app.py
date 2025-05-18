@@ -5,6 +5,7 @@ from PIL import Image
 from io import BytesIO
 import google.generativeai as genai
 import os
+import base64
 
 # --- Set up API key securely ---
 os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]

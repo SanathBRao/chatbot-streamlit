@@ -1,7 +1,6 @@
 import streamlit as st
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
-from google.generativeai.types import GenerateContentConfig
 from PIL import Image
 from io import BytesIO
 import os

@@ -59,9 +59,9 @@ if st.button("Generate Image"):
                 model = genai.GenerativeModel(model_name="models/gemini-2.0-flash-preview-image-generation")
                 response = model.generate_content(
                     contents=[{"text": image_prompt}],
-                    config=genai.types.GenerateContentConfig(
-                        response_modalities=["TEXT", "IMAGE"]
-                    )
+                    config={
+                        "response_modalities": ["TEXT", "IMAGE"]
+                    }
                 )
 
                 text_response = ""
@@ -71,7 +71,6 @@ if st.button("Generate Image"):
                     if hasattr(part, "text") and part.text:
                         text_response += part.text + "\n"
                     elif hasattr(part, "inline_data") and part.inline_data.data:
-                        # Decode base64 image data properly
                         image_data = base64.b64decode(part.inline_data.data)
                         image = Image.open(BytesIO(image_data))
                         images.append(image)

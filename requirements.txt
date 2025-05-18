@@ -3,5 +3,4 @@ google-generativeai
 pillow
 langchain_google_genai  
 langchain_core
-types
-content
+

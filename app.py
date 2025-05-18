@@ -58,10 +58,8 @@ if st.button("Generate Image"):
             try:
                 model = genai.GenerativeModel(model_name="models/gemini-2.0-flash-preview-image-generation")
                 response = model.generate_content(
-                    contents=[{"text": image_prompt}],
-                    config={
-                        "response_modalities": ["TEXT", "IMAGE"]
-                    }
+                        contents=[{"text": image_prompt}],
+                        generation_config={"response_modalities": ["TEXT", "IMAGE"]}
                 )
 
                 text_response = ""

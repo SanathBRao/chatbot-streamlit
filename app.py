@@ -4,8 +4,7 @@ from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from PIL import Image
 from io import BytesIO
 import os
-import openai
-import requests
+
 
 # --- Set up API keys securely ---
 os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]

@@ -14,8 +14,6 @@ st.title("🤖 Gemini Chatbot + 🎨 Image Generator")
 # Set Gemini API Key
 import os
 os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
-genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
-
 # --- Chatbot Section ---
 st.subheader("💬 Chat with Gemini")
 

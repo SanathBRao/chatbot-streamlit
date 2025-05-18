@@ -7,30 +7,28 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 import os
 
-# --- Configure API key ---
+# Configure API key
 GOOGLE_API_KEY = st.secrets["GOOGLE_API_KEY"]
 os.environ["GOOGLE_API_KEY"] = GOOGLE_API_KEY
 genai.configure(api_key=GOOGLE_API_KEY)
 
-# --- Streamlit page config ---
 st.set_page_config(page_title="Gemini Chatbot + Image Generator", layout="centered")
 st.title("🤖 Gemini Chatbot + 🎨 Image Generator")
 
-# --- Initialize Gemini chatbot model ---
+# Initialize Gemini chatbot model
 llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash")
 
-# --- Initialize chat history in session ---
+# Initialize chat history
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = [SystemMessage(content="You are a helpful assistant.")]
 
-# --- Display chat history ---
+# Display chat history
 for msg in st.session_state.chat_history:
     role = "user" if isinstance(msg, HumanMessage) else "assistant"
     if isinstance(msg, (HumanMessage, AIMessage)):
         with st.chat_message(role):
             st.markdown(msg.content)
 
-# --- Chat input ---
 user_input = st.chat_input("Type your message...")
 
 if user_input:
@@ -46,7 +44,6 @@ if user_input:
 
 st.divider()
 
-# --- Image generation section ---
 st.subheader("🖼️ Generate Image + Text using Gemini")
 
 image_prompt = st.text_area("Enter image prompt", placeholder="e.g. Virat Kohli lifts IPL trophy")
@@ -57,20 +54,20 @@ if st.button("Generate Image"):
     else:
         with st.spinner("Generating content with Gemini..."):
             try:
-                # Use Gemini preview image generation model
-                model = genai.GenerativeModel(model_name="gemini-2.0-flash-preview-image-generation")
+                model = genai.GenerativeModel(model_name="models/gemini-2.0-flash-preview-image-generation")
 
-                # Generate content WITHOUT response_modalities argument
-                response = model.generate_content(contents=[{"text": image_prompt}])
+                response = model.generate_content(
+                    contents=[{"text": image_prompt}],
+                    generation_config={"response_modality": ["TEXT", "IMAGE"]}
+                )
 
-                # Loop through parts: can contain text or base64 images
                 for part in response.candidates[0].content.parts:
                     if hasattr(part, "text") and part.text:
                         st.subheader("Text Response")
                         st.write(part.text)
 
                     elif hasattr(part, "inline_data") and part.inline_data:
-                        # inline_data.data is base64-encoded string
+                        # base64 decode image data
                         image_data_base64 = part.inline_data.data
                         image_bytes = base64.b64decode(image_data_base64)
                         image = Image.open(BytesIO(image_bytes))

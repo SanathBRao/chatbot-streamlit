@@ -5,50 +5,46 @@ import google.generativeai as genai
 from PIL import Image
 from io import BytesIO
 
-# Configure your API key (set in Streamlit secrets)
+# Configure API key
 GOOGLE_API_KEY = st.secrets["GOOGLE_API_KEY"]
 genai.configure(api_key=GOOGLE_API_KEY)
 
-# Initialize the chatbot LLM (Gemini text model)
+# Initialize chatbot model
 chat_model = ChatGoogleGenerativeAI(model="gemini-2.0-flash")
 
 st.set_page_config(page_title="Gemini Chatbot + Image Generator", layout="wide")
 st.title("🤖 Gemini Chatbot + 🎨 Image + Text Generator")
 
-# --- SESSION STATE for chat history ---
+# Session state for chat history
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = [SystemMessage(content="You are a helpful assistant.")]
 
-# --- Display previous chat messages ---
+# Display chat messages
 for msg in st.session_state.chat_history:
     role = "user" if isinstance(msg, HumanMessage) else "assistant"
     if isinstance(msg, (HumanMessage, AIMessage)):
         with st.chat_message(role):
             st.markdown(msg.content)
 
-# --- Chat input ---
+# Chat input
 user_message = st.chat_input("Chat with Gemini...")
 
 if user_message:
-    # Append user message
     st.session_state.chat_history.append(HumanMessage(content=user_message))
 
-    # Display user message
     with st.chat_message("user"):
         st.markdown(user_message)
 
-    # Generate response from chatbot
     with st.chat_message("assistant"):
         with st.spinner("Gemini is thinking..."):
             response = chat_model.invoke(st.session_state.chat_history)
             st.markdown(response.content)
 
-    # Append assistant response
     st.session_state.chat_history.append(AIMessage(content=response.content))
 
 st.markdown("---")
 
-# --- Image + Text Generation section ---
+# Image + Text generation section
 st.subheader("🎨 Generate Image + Text from Prompt")
 
 image_text_prompt = st.text_area("Enter prompt for image + text generation", placeholder="e.g. Virat Kohli lifting IPL trophy")
@@ -63,10 +59,11 @@ if st.button("Generate Image + Text"):
 
                 response = model.generate_content(
                     contents=[{"text": image_text_prompt}],
-                    response_modality=["TEXT", "IMAGE"]
+                    generation_config=genai.GenerationConfig(
+                        response_modality=["TEXT", "IMAGE"]
+                    )
                 )
 
-                # Show generated text and images
                 for part in response.candidates[0].content.parts:
                     if hasattr(part, "text") and part.text:
                         st.markdown("### Generated Text")

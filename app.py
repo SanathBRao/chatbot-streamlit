@@ -1,77 +1,89 @@
 import streamlit as st
-import google.generativeai as genai
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from PIL import Image
 from io import BytesIO
+import google.generativeai as genai
 import base64
+import os
 
-# --- Configure API key ---
-genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
+# --- Set up API key securely ---
+os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
+genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
 
-# --- Page config ---
-st.set_page_config(page_title="Gemini Chat + Image Generator", layout="centered")
-st.title("🤖 Gemini Chat + 🖼️ Image Generator (Combined)")
+# --- Streamlit page config ---
+st.set_page_config(page_title="Gemini Chatbot + Image Generator", layout="centered")
+st.title("🤖 Gemini Chatbot + 🎨 Image Generator")
 
-# --- Chat history ---
+# --- Initialize Gemini Chatbot model ---
+llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash")
+
+# --- Initialize chat history ---
 if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
+    st.session_state.chat_history = [SystemMessage(content="You are a helpful assistant.")]
+
+# --- Display chat history ---
+for msg in st.session_state.chat_history:
+    role = "user" if isinstance(msg, HumanMessage) else "assistant"
+    if isinstance(msg, (HumanMessage, AIMessage)):
+        with st.chat_message(role):
+            st.markdown(msg.content)
 
 # --- Chat input ---
-user_input = st.text_input("Ask something or describe an image to generate:")
+user_input = st.chat_input("Type your message...")
 
 if user_input:
-    st.session_state.chat_history.append({"role": "user", "content": user_input})
+    st.session_state.chat_history.append(HumanMessage(content=user_input))
 
-    with st.spinner("Generating text + image response..."):
-        try:
-            # Initialize Gemini image+text model
-            model = genai.GenerativeModel("models/gemini-2.0-flash-preview-image-generation")
+    with st.chat_message("user"):
+        st.markdown(user_input)
 
-            # Call generate_content with both text + image response modalities
-            response = model.generate_content(
-                contents=[{"text": user_input}],
-                generation_config={
-                    "response_modalities": ["TEXT", "IMAGE"]
-                },
-                stream=False
-            )
+    with st.chat_message("assistant"):
+        with st.spinner("Thinking..."):
+            response = llm.invoke(st.session_state.chat_history)
+            st.markdown(response.content)
 
-            # Extract and show chatbot text reply & image(s)
-            text_response = ""
-            images = []
-            for part in response.candidates[0].content.parts:
-                if hasattr(part, "text") and part.text:
-                    text_response += part.text + "\n"
-                elif hasattr(part, "inline_data") and part.inline_data.data:
-                    image_data = base64.b64decode(part.inline_data.data)
-                    image = Image.open(BytesIO(image_data))
-                    images.append(image)
+    st.session_state.chat_history.append(AIMessage(content=response.content))
 
-            # Show text
-            if text_response.strip():
-                st.markdown("### 🤖 Gemini says:")
-                st.write(text_response.strip())
+# --- Image generation section ---
+st.subheader("🖼️ Generate Image from Prompt")
 
-            # Show images
-            if images:
-                st.markdown("### 🖼️ Generated Image(s):")
-                for i, img in enumerate(images):
-                    st.image(img, use_column_width=True)
-                    img_byte_arr = BytesIO()
-                    img.save(img_byte_arr, format="PNG")
-                    st.download_button(f"Download Image {i+1}", img_byte_arr.getvalue(), file_name=f"generated_image_{i+1}.png")
-            else:
-                st.warning("No images generated for this prompt.")
+image_prompt = st.text_area("Enter prompt for image generation", placeholder="e.g. Virat Kohli lifts IPL trophy")
 
-            # Add assistant reply to chat history (text only)
-            st.session_state.chat_history.append({"role": "assistant", "content": text_response.strip()})
+if st.button("Generate Image"):
+    if not image_prompt.strip():
+        st.warning("Please enter a valid prompt.")
+    else:
+        with st.spinner("Generating image using Gemini..."):
+            try:
+                model = genai.GenerativeModel(model_name="models/gemini-2.0-flash-preview-image-generation")
+                response = model.generate_content(
+                    contents=[{"text": image_prompt}],
+                    config=genai.types.GenerateContentConfig(
+                        response_modalities=["TEXT", "IMAGE"]
+                    )
+                )
 
-        except Exception as e:
-            st.error(f"Error generating content: {e}")
+                text_response = ""
+                images = []
 
-# --- Show previous chat messages ---
-if st.session_state.chat_history:
-    st.markdown("---")
-    st.markdown("### Chat History")
-    for msg in st.session_state.chat_history:
-        role = "User" if msg["role"] == "user" else "Gemini"
-        st.markdown(f"**{role}:** {msg['content']}")
+                for part in response.candidates[0].content.parts:
+                    if hasattr(part, "text") and part.text:
+                        text_response += part.text + "\n"
+                    elif hasattr(part, "inline_data") and part.inline_data.data:
+                        # Decode base64 image data properly
+                        image_data = base64.b64decode(part.inline_data.data)
+                        image = Image.open(BytesIO(image_data))
+                        images.append(image)
+
+                if text_response:
+                    st.subheader("Text Response")
+                    st.write(text_response.strip())
+
+                if images:
+                    st.subheader("Generated Image(s)")
+                    for img in images:
+                        st.image(img, caption="Generated by Gemini", use_column_width=True)
+
+            except Exception as e:
+                st.error(f"❌ Error generating content: {e}")

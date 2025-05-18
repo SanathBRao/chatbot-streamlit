@@ -58,7 +58,7 @@ if st.button("Generate Image"):
 
                 response = model.generate_content(
                     contents=[{"text": image_prompt}],
-                    generation_config={"response_modality": ["TEXT", "IMAGE"]}
+                    response_modalities=["TEXT", "IMAGE"]
                 )
 
                 for part in response.candidates[0].content.parts:

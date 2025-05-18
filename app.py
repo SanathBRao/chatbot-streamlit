@@ -3,7 +3,7 @@ from PIL import Image
 from io import BytesIO
 import base64
 import google.generativeai as genai
-
+import numpy as np
  
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
@@ -42,3 +42,18 @@ if user_input:
 
     # Append model response
     st.session_state.chat_history.append(AIMessage(content=result.content))
+
+
+# Function to generate a random image
+def generate_image(width=256, height=256):
+    # Create an array of random pixels
+    array = np.random.randint(0, 256, (height, width, 3), dtype=np.uint8)
+    # Convert array to an image
+    img = Image.fromarray(array)
+    return img
+
+
+
+if st.button("Generate Image"):
+    img = generate_image()
+    st.image(img, caption="Randomly Generated Image", use_column_width=True)
